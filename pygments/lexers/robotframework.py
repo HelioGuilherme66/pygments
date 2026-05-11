@@ -9,6 +9,8 @@
 """
 
 #  Copyright 2012 Nokia Siemens Networks Oyj
+#  Copyright 2012-2015 Nokia Networks
+#  Copyright 2016-present Robot Framework Foundation
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -35,6 +37,7 @@ SETTING = Token.Keyword.Namespace
 IMPORT = Token.Name.Namespace
 TC_KW_NAME = Token.Generic.Subheading
 KEYWORD = Token.Name.Function
+CONTROL = Token.Name.Function.Magic
 ARGUMENT = Token.String
 VARIABLE = Token.Name.Variable
 COMMENT = Token.Comment
@@ -50,6 +53,10 @@ def normalize(string, remove=''):
         if char in string:
             string = string.replace(char, '')
     return string
+
+def is_control(value):
+    return value in ('ELSE', 'ELSE IF', 'END', 'EXCEPT', 'FINALLY', 'FOR',
+                     'GROUP', 'IF', 'RETURN', 'TRY', 'VAR', 'WHILE')
 
 
 class RobotFrameworkLexer(Lexer):
@@ -271,15 +278,19 @@ class KeywordCall(Tokenizer):
 
     def __init__(self, support_assign=True):
         Tokenizer.__init__(self)
-        self._keyword_found = not support_assign
+        self._keyword_found = self._control_found = not support_assign
         self._assigns = 0
 
     def _tokenize(self, value, index):
         if not self._keyword_found and self._is_assign(value):
             self._assigns += 1
             return SYNTAX  # VariableTokenizer tokenizes this later.
+        if self._control_found:
+            self._tokens = (CONTROL, ARGUMENT)
         if self._keyword_found:
+            self._tokens = (KEYWORD, ARGUMENT)
             return Tokenizer._tokenize(self, value, index - self._assigns)
+        self._control_found = is_control(value)
         self._keyword_found = True
         return GherkinTokenizer().tokenize(value, KEYWORD)
 
@@ -307,7 +318,20 @@ class ForLoop(Tokenizer):
 
     def _tokenize(self, value, index):
         token = self._in_arguments and ARGUMENT or SYNTAX
-        if value.upper() in ('IN', 'IN RANGE'):
+        if value in ('IN', 'IN ENUMERATE', 'IN RANGE', 'IN ZIP'):  # value must be in all caps
+            self._in_arguments = True
+        return token
+
+
+class Control(Tokenizer):
+
+    def __init__(self):
+        Tokenizer.__init__(self)
+        self._in_arguments = False
+
+    def _tokenize(self, value, index):
+        token = self._in_arguments and ARGUMENT or SYNTAX
+        if value in ('ELSE IF', 'EXCEPT', 'FOR', 'GROUP', 'IF', 'RETURN', 'VAR', 'WHILE'):
             self._in_arguments = True
         return token
 
@@ -397,6 +421,8 @@ class TestCaseTable(_Table):
                 self._tokenizer = self._setting_class()
         if index == 1 and self._is_for_loop(value):
             self._tokenizer = ForLoop()
+        if index == 1 and is_control(value):
+            self._tokenizer = Control()
         if index == 1 and self._is_empty(value):
             return [(value, SYNTAX)]
         return _Table._tokenize(self, value, index)
@@ -408,7 +434,7 @@ class TestCaseTable(_Table):
         return normalize(value) == '[template]'
 
     def _is_for_loop(self, value):
-        return value.startswith(':') and normalize(value, remove=':') == 'for'
+        return (value.startswith(':') and normalize(value, remove=':') == 'for') or value == 'FOR'
 
     def set_test_template(self, template):
         self._test_template = self._is_template_set(template)
