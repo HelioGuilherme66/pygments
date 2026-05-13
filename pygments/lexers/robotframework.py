@@ -55,8 +55,9 @@ def normalize(string, remove=''):
     return string
 
 def is_control(value):
-    return value in ('ELSE', 'ELSE IF', 'END', 'EXCEPT', 'FINALLY', 'FOR',
-                     'GROUP', 'IF', 'RETURN', 'TRY', 'VAR', 'WHILE')
+    return value in ('AND', 'ELSE', 'ELSE IF', 'END', 'EXCEPT', 'FINALLY', 'FOR', 'GROUP',
+                     'IF', 'IN', 'IN ENUMERATE', 'IN RANGE', 'IN ZIP',
+                     'RETURN', 'TRY', 'VAR', 'WHILE')
 
 
 class RobotFrameworkLexer(Lexer):
@@ -285,14 +286,14 @@ class KeywordCall(Tokenizer):
         if not self._keyword_found and self._is_assign(value):
             self._assigns += 1
             return SYNTAX  # VariableTokenizer tokenizes this later.
-        if self._control_found:
-            self._tokens = (CONTROL, ARGUMENT)
-        if self._keyword_found:
-            self._tokens = (KEYWORD, ARGUMENT)
+        if self._keyword_found or self._control_found:
+            self._tokens = (KEYWORD, ARGUMENT) if not self._control_found else (CONTROL, ARGUMENT)
             return Tokenizer._tokenize(self, value, index - self._assigns)
         self._control_found = is_control(value)
-        self._keyword_found = True
-        return GherkinTokenizer().tokenize(value, KEYWORD)
+        if self._control_found:
+            self._tokens = (CONTROL, ARGUMENT)
+        self._keyword_found = True if not self._control_found else False
+        return GherkinTokenizer().tokenize(value, self._tokens[0])
 
 
 class GherkinTokenizer:
@@ -318,21 +319,9 @@ class ForLoop(Tokenizer):
 
     def _tokenize(self, value, index):
         token = self._in_arguments and ARGUMENT or SYNTAX
-        if value in ('IN', 'IN ENUMERATE', 'IN RANGE', 'IN ZIP'):  # value must be in all caps
+        if value in ('FOR', 'IN', 'IN ENUMERATE', 'IN RANGE', 'IN ZIP'):  # value must be in all caps
             self._in_arguments = True
-        return token
-
-
-class Control(Tokenizer):
-
-    def __init__(self):
-        Tokenizer.__init__(self)
-        self._in_arguments = False
-
-    def _tokenize(self, value, index):
-        token = self._in_arguments and ARGUMENT or SYNTAX
-        if value in ('ELSE IF', 'EXCEPT', 'FOR', 'GROUP', 'IF', 'RETURN', 'VAR', 'WHILE'):
-            self._in_arguments = True
+            token = CONTROL
         return token
 
 
@@ -419,10 +408,8 @@ class TestCaseTable(_Table):
                 self._tokenizer = self._setting_class(self.set_test_template)
             else:
                 self._tokenizer = self._setting_class()
-        if index == 1 and self._is_for_loop(value):
+        if self._is_for_loop(value):
             self._tokenizer = ForLoop()
-        if index == 1 and is_control(value):
-            self._tokenizer = Control()
         if index == 1 and self._is_empty(value):
             return [(value, SYNTAX)]
         return _Table._tokenize(self, value, index)
