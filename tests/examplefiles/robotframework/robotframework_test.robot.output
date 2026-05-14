@@ -8,12 +8,12 @@
 
 'Library'     Keyword.Namespace
 '          '  Punctuation
-'ExampleLibrary' Name.Namespace
+'Process'     Name.Namespace
 '\n'          Punctuation
 
 'Test Setup'  Keyword.Namespace
 '       '     Punctuation
-'Keyword'     Name.Function
+'Keyword'     Name.Function.Magic
 '    '        Punctuation
 'argument'    Literal.String
 '   '         Punctuation
@@ -82,7 +82,7 @@
 'Teardown'    Keyword.Namespace
 ']'           Punctuation
 '    '        Punctuation
-'Cleanup System' Name.Function
+'Cleanup System' Name.Function.Magic
 '\n'          Punctuation
 
 '\n'          Punctuation
@@ -95,12 +95,12 @@
 'Template'    Keyword.Namespace
 ']'           Punctuation
 '    '        Punctuation
-'Keyword'     Name.Function
+'Keyword'     Name.Function.Magic
 '\n'          Punctuation
 
 '    '        Punctuation
 'argument1'   Literal.String
-'   '         Punctuation
+'    '        Punctuation
 'argument2'   Literal.String
 '\n'          Punctuation
 
@@ -188,6 +188,10 @@
 ' ='          Punctuation
 '    '        Punctuation
 'Get Value'   Name.Function
+'    '        Punctuation
+'${'          Punctuation
+'expected'    Name.Variable
+'}'           Punctuation
 '\n'          Punctuation
 
 '    '        Punctuation
@@ -217,5 +221,192 @@
 '    '        Punctuation
 '${'          Punctuation
 'expected'    Name.Variable
+'}'           Punctuation
+'\n'          Punctuation
+
+'\n'          Punctuation
+
+'System is initialized' Generic.Subheading
+'\n'          Punctuation
+
+'    '        Punctuation
+'# This is a single line comment' Comment
+'\n'          Comment
+
+'    '        Punctuation
+'Initialize System' Name.Function
+'\n'          Punctuation
+
+'\n'          Punctuation
+
+'something is done' Generic.Subheading
+'\n'          Punctuation
+
+'    '        Punctuation
+'Do Something' Name.Function
+'\n'          Punctuation
+
+'\n'          Punctuation
+
+'Keyword'     Generic.Subheading
+'\n'          Punctuation
+
+'    '        Punctuation
+'['           Punctuation
+'Arguments'   Keyword.Namespace
+']'           Punctuation
+'    '        Punctuation
+'${'          Punctuation
+'arg1'        Name.Variable
+'}'           Punctuation
+'    '        Punctuation
+'${'          Punctuation
+'arg2'        Name.Variable
+'}'           Punctuation
+'   '         Punctuation
+'${'          Punctuation
+'arg3'        Name.Variable
+'}'           Punctuation
+'='           Literal.String
+'${'          Punctuation
+'EMPTY'       Name.Variable
+'}'           Punctuation
+'\n'          Punctuation
+
+'    '        Punctuation
+'IF'          Name.Function.Magic
+'    '        Punctuation
+'"'           Literal.String
+'${'          Punctuation
+'arg1'        Name.Variable
+'}'           Punctuation
+'" == "'      Literal.String
+'${'          Punctuation
+'arg2'        Name.Variable
+'}'           Punctuation
+'"'           Literal.String
+'\n'          Punctuation
+
+'        '    Punctuation
+'Log'         Name.Function
+'     '       Punctuation
+'Equal Arguments' Literal.String
+'\n'          Punctuation
+
+'    '        Punctuation
+'ELSE IF'     Name.Function.Magic
+'    '        Punctuation
+'"'           Literal.String
+'${'          Punctuation
+'arg1'        Name.Variable
+'}'           Punctuation
+'" == "argument1"' Literal.String
+'\n'          Punctuation
+
+'        '    Punctuation
+'Log'         Name.Function
+'     '       Punctuation
+'arg1 is equal to argument1' Literal.String
+'\n'          Punctuation
+
+'    '        Punctuation
+'ELSE'        Name.Function.Magic
+'\n'          Punctuation
+
+'        '    Punctuation
+'FOR'         Name.Function.Magic
+'    '        Punctuation
+'${'          Punctuation
+'idx'         Name.Variable
+'}'           Punctuation
+'    '        Punctuation
+'IN RANGE'    Name.Function.Magic
+'    '        Punctuation
+'3'           Literal.String
+'\n'          Punctuation
+
+'            ' Punctuation
+'Log'         Name.Function
+'    '        Punctuation
+'${'          Punctuation
+'\\n'         Name.Variable
+'}'           Punctuation
+'arg'         Literal.String
+'${'          Punctuation
+'idx+1'       Name.Variable
+'}'           Punctuation
+' = '         Literal.String
+'${'          Punctuation
+'arg'         Name.Variable
+'${'          Punctuation
+'idx+1'       Name.Variable
+'}'           Punctuation
+'}'           Punctuation
+'    '        Punctuation
+'console=True' Literal.String
+'\n'          Punctuation
+
+'        '    Punctuation
+'END'         Name.Function.Magic
+'\n'          Punctuation
+
+'    '        Punctuation
+'END'         Name.Function.Magic
+'\n'          Punctuation
+
+'\n'          Punctuation
+
+'Initialize System' Generic.Subheading
+'\n'          Punctuation
+
+'    '        Punctuation
+'Log'         Name.Function
+'    '        Punctuation
+'System initialized' Literal.String
+'\n'          Punctuation
+
+'\n'          Punctuation
+
+'Do Something' Generic.Subheading
+'\n'          Punctuation
+
+'    '        Punctuation
+'Log'         Name.Function
+'    '        Punctuation
+'Done'        Literal.String
+'\n'          Punctuation
+
+'\n'          Punctuation
+
+'Cleanup System' Generic.Subheading
+'\n'          Punctuation
+
+'    '        Punctuation
+'Log'         Name.Function
+'    '        Punctuation
+'System cleaned' Literal.String
+'\n'          Punctuation
+
+'\n'          Punctuation
+
+'Get Value'   Generic.Subheading
+'\n'          Punctuation
+
+'    '        Punctuation
+'['           Punctuation
+'Arguments'   Keyword.Namespace
+']'           Punctuation
+'    '        Punctuation
+'${'          Punctuation
+'arg1'        Name.Variable
+'}'           Punctuation
+'=42'         Literal.String
+'\n'          Punctuation
+
+'    '        Punctuation
+'RETURN'      Name.Function.Magic
+'    '        Punctuation
+'${'          Punctuation
+'arg1'        Name.Variable
 '}'           Punctuation
 '\n'          Punctuation
