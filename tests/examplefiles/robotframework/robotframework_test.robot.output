@@ -6,7 +6,7 @@
 'Simple example demonstrating syntax highlighting.' Literal.String
 '\n'          Punctuation
 
-'Library'     Keyword.Namespace
+'Library'     Name.Namespace
 '          '  Punctuation
 'Process'     Name.Namespace
 '\n'          Punctuation
@@ -99,13 +99,13 @@
 '\n'          Punctuation
 
 '    '        Punctuation
-'argument1'   Literal.String
+'argument1'   Name.Function
 '    '        Punctuation
 'argument2'   Literal.String
 '\n'          Punctuation
 
 '    '        Punctuation
-'argument'    Literal.String
+'argument'    Name.Function
 '    '        Punctuation
 '${'          Punctuation
 'VARIABLE'    Name.Variable
@@ -161,6 +161,17 @@
 ' | '         Punctuation
 'As this example demonstrates.' Literal.String
 ' |'          Punctuation
+'\n'          Punctuation
+
+'\n'          Punctuation
+
+'*** Comments ***' Generic.Heading
+'\n'          Punctuation
+
+'This is a section of comments.' Comment
+'\n'          Punctuation
+
+'We can have many lines without any comment marker.' Comment
 '\n'          Punctuation
 
 '\n'          Punctuation

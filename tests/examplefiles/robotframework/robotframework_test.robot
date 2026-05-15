@@ -30,6 +30,10 @@ Gherkin
 |  | [Documentation] | Also pipe separated format is supported. |
 |  | Log | As this example demonstrates. |
 
+*** Comments ***
+This is a section of comments.
+We can have many lines without any comment marker.
+
 *** Keywords ***
 Result Should Be
     [Arguments]    ${expected}

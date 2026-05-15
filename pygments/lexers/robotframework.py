@@ -123,13 +123,14 @@ class RowTokenizer:
         settings = SettingTable(testcases.set_default_template)
         variables = VariableTable()
         keywords = KeywordTable()
-        self._tables = {'settings': settings, 'setting': settings,
+        comments = CommentsTable()
+        self._tables = {'settings': settings,
                         'metadata': settings,
-                        'variables': variables, 'variable': variables,
-                        'testcases': testcases, 'testcase': testcases,
-                        'tasks': testcases, 'task': testcases,
-                        'keywords': keywords, 'keyword': keywords,
-                        'userkeywords': keywords, 'userkeyword': keywords}
+                        'variables': variables,
+                        'testcases': testcases,
+                        'tasks': testcases,
+                        'keywords': keywords,
+                        'comments': comments}
 
     def tokenize(self, row):
         commented = False
@@ -216,11 +217,11 @@ class Comment(Tokenizer):
 class Setting(Tokenizer):
     _tokens = (SETTING, ARGUMENT)
     _keyword_settings = ('suitesetup', 'suiteprecondition', 'suiteteardown',
-                         'suitepostcondition', 'testsetup', 'tasksetup', 'testprecondition',
-                         'testteardown','taskteardown', 'testpostcondition', 'testtemplate', 'tasktemplate')
+                         'suitepostcondition', 'arguments', 'teardown', 'testsetup', 'tasksetup', 'testprecondition',
+                         'testteardown','taskteardown', 'testpostcondition', 'testtemplate', 'tasktemplate', 'setup', 'template')
     _import_settings = ('library', 'resource', 'variables')
-    _other_settings = ('documentation', 'metadata', 'forcetags', 'defaulttags',
-                       'testtimeout','tasktimeout')
+    _other_settings = ('documentation', 'metadata', 'keywordtags', 'testtags', 'tasktags', 'tags', 'forcetags', 'defaulttags',
+                       'testtimeout','tasktimeout', 'timeout')
     _custom_tokenizer = None
 
     def __init__(self, template_setter=None):
@@ -236,6 +237,7 @@ class Setting(Tokenizer):
                 self._custom_tokenizer = KeywordCall(support_assign=False)
             elif normalized in self._import_settings:
                 self._custom_tokenizer = ImportSetting()
+                return IMPORT
             elif normalized not in self._other_settings:
                 return ERROR
         elif self._custom_tokenizer:
@@ -254,15 +256,20 @@ class TestCaseSetting(Setting):
     _other_settings = ('documentation', 'tags', 'timeout')
 
     def _tokenize(self, value, index):
+        normalized = normalize(value)
+        if normalized in self._keyword_settings:
+            self._custom_tokenizer = KeywordCall(support_assign=False)
         if index == 0:
-            type = Setting._tokenize(self, value[1:-1], index)
-            return [('[', SYNTAX), (value[1:-1], type), (']', SYNTAX)]
+            stype = Setting._tokenize(self, value[1:-1], index)
+            return [('[', SYNTAX), (value[1:-1], stype), (']', SYNTAX)]
+        elif self._custom_tokenizer:
+            return self._custom_tokenizer.tokenize(value)
         return Setting._tokenize(self, value, index)
 
 
 class KeywordSetting(TestCaseSetting):
-    _keyword_settings = ('teardown',)
-    _other_settings = ('documentation', 'arguments', 'return', 'timeout', 'tags')
+    _keyword_settings = ('setup', 'testsetup', 'teardown', 'template')
+    _other_settings = ('documentation', 'arguments', 'return', 'timeout', 'keywordtags', 'tags')
 
 
 class Variable(Tokenizer):
@@ -353,6 +360,13 @@ class _Table:
 
     def end_row(self):
         self.__init__(prev_tokenizer=self._tokenizer)
+
+
+class CommentsTable(_Table):
+    _tokenizer_class = Comment
+
+    def _continues(self, value, index):
+        return False
 
 
 class UnknownTable(_Table):
@@ -492,7 +506,7 @@ class VariableSplitter:
                 self._state(char, index)
             except StopIteration:
                 return
-            if index  == max_index and not self._scanning_list_variable_index():
+            if index == max_index and not self._scanning_list_variable_index():
                 return
 
     def _scanning_list_variable_index(self):
@@ -541,7 +555,7 @@ class VariableSplitter:
             self._state = self._internal_variable_start_state
 
     def _is_list_or_dict_variable(self):
-        return self._variable_chars[0] in ('@','&')
+        return self._variable_chars[0] in ('@', '&')
 
     def _internal_variable_start_state(self, char, index):
         self._state = self._variable_state
