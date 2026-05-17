@@ -12,7 +12,11 @@ ${test}[]
 '*** Variables ***' Generic.Heading
 '\n'          Punctuation
 
-'${test}[]'   Error
+'${'          Punctuation
+'test'        Name.Variable
+'}'           Punctuation
+'['           Punctuation
+']'           Punctuation
 '\n'          Punctuation
 
 '\n'          Punctuation

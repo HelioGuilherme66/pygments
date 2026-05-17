@@ -6,7 +6,7 @@
 'Simple example demonstrating syntax highlighting.' Literal.String
 '\n'          Punctuation
 
-'Library'     Name.Namespace
+'Library'     Keyword.Namespace
 '          '  Punctuation
 'Process'     Name.Namespace
 '\n'          Punctuation
@@ -190,6 +190,14 @@
 '${'          Punctuation
 'expected'    Name.Variable
 '}'           Punctuation
+'\n'          Punctuation
+
+'    '        Punctuation
+'['           Punctuation
+'Tags'        Keyword.Namespace
+']'           Punctuation
+'  '          Punctuation
+'whatever'    Literal.String
 '\n'          Punctuation
 
 '    '        Punctuation

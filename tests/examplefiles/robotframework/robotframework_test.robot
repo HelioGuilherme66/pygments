@@ -37,6 +37,7 @@ We can have many lines without any comment marker.
 *** Keywords ***
 Result Should Be
     [Arguments]    ${expected}
+    [Tags]  whatever
     ${actual} =    Get Value    ${expected}
     Should be Equal    ${actual}    ${expected}
 

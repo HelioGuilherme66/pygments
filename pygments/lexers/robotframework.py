@@ -47,12 +47,12 @@ GHERKIN = Token.Generic.Emph
 ERROR = Token.Error
 
 
-def normalize(string, remove=''):
+def normalize(string, remove='', strip=True):
     string = string.lower()
     for char in remove + ' ':
         if char in string:
             string = string.replace(char, '')
-    return string
+    return string if not strip else string.strip()
 
 def is_control(value):
     return value in ('AND', 'ELSE', 'ELSE IF', 'END', 'EXCEPT', 'FINALLY', 'FOR', 'GROUP',
@@ -68,7 +68,7 @@ class RobotFrameworkLexer(Lexer):
     """
     name = 'RobotFramework'
     url = 'http://robotframework.org'
-    aliases = ['robotframework']
+    aliases = ['RobotFramework', 'robotframework']
     filenames = ['*.robot', '*.resource']
     mimetypes = ['text/x-robotframework']
     version_added = '1.6'
@@ -157,10 +157,13 @@ class RowTokenizer:
         elif separator:
             yield value, SEPARATOR
         elif heading:
-            yield value, HEADING
+            token = HEADING if self._in_valid_table() else ERROR
+            yield value, token
         else:
             yield from self._table.tokenize(value, index)
 
+    def _in_valid_table(self):
+        return not isinstance(self._table, UnknownTable)
 
 class RowSplitter:
     _space_splitter = re.compile('( {2,})')
@@ -216,11 +219,11 @@ class Comment(Tokenizer):
 
 class Setting(Tokenizer):
     _tokens = (SETTING, ARGUMENT)
-    _keyword_settings = ('suitesetup', 'suiteprecondition', 'suiteteardown',
-                         'suitepostcondition', 'arguments', 'teardown', 'testsetup', 'tasksetup', 'testprecondition',
-                         'testteardown','taskteardown', 'testpostcondition', 'testtemplate', 'tasktemplate', 'setup', 'template')
+    _keyword_settings = ('suitesetup', 'suiteteardown',
+                         'arguments', 'teardown', 'testsetup', 'tasksetup',
+                         'testteardown','taskteardown', 'testtemplate', 'tasktemplate', 'setup', 'template')
     _import_settings = ('library', 'resource', 'variables')
-    _other_settings = ('documentation', 'metadata', 'keywordtags', 'testtags', 'tasktags', 'tags', 'forcetags', 'defaulttags',
+    _other_settings = ('documentation', 'metadata', 'testtags', 'tasktags', 'tags', 'forcetags', 'defaulttags',
                        'testtimeout','tasktimeout', 'timeout')
     _custom_tokenizer = None
 
@@ -237,7 +240,6 @@ class Setting(Tokenizer):
                 self._custom_tokenizer = KeywordCall(support_assign=False)
             elif normalized in self._import_settings:
                 self._custom_tokenizer = ImportSetting()
-                return IMPORT
             elif normalized not in self._other_settings:
                 return ERROR
         elif self._custom_tokenizer:
@@ -250,8 +252,7 @@ class ImportSetting(Tokenizer):
 
 
 class TestCaseSetting(Setting):
-    _keyword_settings = ('setup', 'precondition', 'teardown', 'postcondition',
-                         'template')
+    _keyword_settings = ('setup', 'teardown', 'template')
     _import_settings = ()
     _other_settings = ('documentation', 'tags', 'timeout')
 
@@ -269,7 +270,7 @@ class TestCaseSetting(Setting):
 
 class KeywordSetting(TestCaseSetting):
     _keyword_settings = ('setup', 'testsetup', 'teardown', 'template')
-    _other_settings = ('documentation', 'arguments', 'return', 'timeout', 'keywordtags', 'tags')
+    _other_settings = ('documentation', 'arguments', 'return', 'timeout', 'tags')
 
 
 class Variable(Tokenizer):
@@ -327,8 +328,17 @@ class ForLoop(Tokenizer):
     def _tokenize(self, value, index):
         token = self._in_arguments and ARGUMENT or SYNTAX
         if value in ('FOR', 'IN', 'IN ENUMERATE', 'IN RANGE', 'IN ZIP'):  # value must be in all caps
-            self._in_arguments = True
+            self._in_arguments = value != 'FOR'
             token = CONTROL
+        elif value in ('for', 'in', 'in enumerate', 'in range', 'in zip'):
+            self._in_arguments = True
+            token = ERROR
+        elif index >= 1 and not self._in_arguments:
+             var = list(VariableTokenizer().tokenize(value, ARGUMENT))
+             if len(var) > 1  and var[1][1] == VARIABLE:
+                 token = SYNTAX
+             else:
+                 token = ERROR
         return token
 
 
@@ -369,11 +379,8 @@ class CommentsTable(_Table):
         return False
 
 
-class UnknownTable(_Table):
-    _tokenizer_class = Comment
-
-    def _continues(self, value, index):
-        return False
+class UnknownTable(CommentsTable):
+    pass
 
 
 class VariableTable(_Table):
@@ -455,86 +462,98 @@ class KeywordTable(TestCaseTable):
         return False
 
 
-# Following code copied directly from Robot Framework 2.7.5.
+# Following code copied from Robot Framework 3.1.1.
 
-class VariableSplitter:
+class VariableSplitter(object):
 
-    def __init__(self, string, identifiers):
+    def __init__(self, string, identifiers='$@%&*'):
         self.identifier = None
         self.base = None
         self.index = None
+        self.items = []
         self.start = -1
         self.end = -1
         self._identifiers = identifiers
         self._may_have_internal_variables = False
-        try:
-            self._split(string)
-        except ValueError:
-            pass
-        else:
+        self._max_end = len(string)
+        if self._split(string):
             self._finalize()
 
-    def get_replaced_base(self, variables):
+    def get_replaced_variable(self, replacer):
         if self._may_have_internal_variables:
-            return variables.replace_string(self.base)
-        return self.base
+            base = replacer.replace_string(self.base)
+        else:
+            base = self.base
+        # This omits possible variable items.
+        return '%s{%s}' % (self.identifier, base)
+
+    def is_variable(self):
+        return bool(self.identifier and self.base and
+                    self.start == 0 and self.end == self._max_end)
+
+    def is_list_variable(self):
+        return bool(self.identifier == '@' and self.base and
+                    self.start == 0 and self.end == self._max_end and
+                    not self.items)
+
+    def is_dict_variable(self):
+        return bool(self.identifier == '&' and self.base and
+                    self.start == 0 and self.end == self._max_end and
+                    not self.items)
 
     def _finalize(self):
         self.identifier = self._variable_chars[0]
         self.base = ''.join(self._variable_chars[2:-1])
         self.end = self.start + len(self._variable_chars)
-        if self._has_list_or_dict_variable_index():
-            self.index = ''.join(self._list_and_dict_variable_index_chars[1:-1])
-            self.end += len(self._list_and_dict_variable_index_chars)
-
-    def _has_list_or_dict_variable_index(self):
-        return self._list_and_dict_variable_index_chars\
-        and self._list_and_dict_variable_index_chars[-1] == ']'
+        if self.items:
+            self.end += len(''.join(self.items)) + 2 * len(self.items)
 
     def _split(self, string):
         start_index, max_index = self._find_variable(string)
+        if start_index == -1:
+            return False
         self.start = start_index
         self._open_curly = 1
         self._state = self._variable_state
         self._variable_chars = [string[start_index], '{']
-        self._list_and_dict_variable_index_chars = []
+        self._item_chars = []
         self._string = string
         start_index += 2
-        for index, char in enumerate(string[start_index:]):
-            index += start_index  # Giving start to enumerate only in Py 2.6+
+        for index, char in enumerate(string[start_index:], start=start_index):
             try:
                 self._state(char, index)
             except StopIteration:
-                return
-            if index == max_index and not self._scanning_list_variable_index():
-                return
+                break
+            if index == max_index and not self._scanning_item():
+                break
+        return True
 
-    def _scanning_list_variable_index(self):
-        return self._state in [self._waiting_list_variable_index_state,
-                               self._list_variable_index_state]
+    def _scanning_item(self):
+        return self._state in (self._waiting_item_state, self._item_state)
 
     def _find_variable(self, string):
         max_end_index = string.rfind('}')
         if max_end_index == -1:
-            raise ValueError('No variable end found')
+            return -1, -1
         if self._is_escaped(string, max_end_index):
             return self._find_variable(string[:max_end_index])
         start_index = self._find_start_index(string, 1, max_end_index)
         if start_index == -1:
-            raise ValueError('No variable start found')
+            return -1, -1
         return start_index, max_end_index
 
     def _find_start_index(self, string, start, end):
-        index = string.find('{', start, end) - 1
-        if index < 0:
-            return -1
-        if self._start_index_is_ok(string, index):
-            return index
-        return self._find_start_index(string, index+2, end)
+        while True:
+            index = string.find('{', start, end) - 1
+            if index < 0:
+                return -1
+            if self._start_index_is_ok(string, index):
+                return index
+            start = index + 2
 
     def _start_index_is_ok(self, string, index):
-        return string[index] in self._identifiers\
-        and not self._is_escaped(string, index)
+        return (string[index] in self._identifiers
+                and not self._is_escaped(string, index))
 
     def _is_escaped(self, string, index):
         escaped = False
@@ -548,14 +567,14 @@ class VariableSplitter:
         if char == '}' and not self._is_escaped(self._string, index):
             self._open_curly -= 1
             if self._open_curly == 0:
-                if not self._is_list_or_dict_variable():
+                if not self._can_have_item():
                     raise StopIteration
-                self._state = self._waiting_list_variable_index_state
+                self._state = self._waiting_item_state
         elif char in self._identifiers:
             self._state = self._internal_variable_start_state
 
-    def _is_list_or_dict_variable(self):
-        return self._variable_chars[0] in ('@', '&')
+    def _can_have_item(self):
+        return self._variable_chars[0] in '$@&'
 
     def _internal_variable_start_state(self, char, index):
         self._state = self._variable_state
@@ -566,13 +585,20 @@ class VariableSplitter:
         else:
             self._variable_state(char, index)
 
-    def _waiting_list_variable_index_state(self, char, index):
+    def _waiting_item_state(self, char, index):
         if char != '[':
             raise StopIteration
-        self._list_and_dict_variable_index_chars.append(char)
-        self._state = self._list_variable_index_state
+        self._state = self._item_state
 
-    def _list_variable_index_state(self, char, index):
-        self._list_and_dict_variable_index_chars.append(char)
-        if char == ']':
+    def _item_state(self, char, index):
+        if char != ']':
+            self._item_chars.append(char)
+            return
+        self.items.append(''.join(self._item_chars))
+        self._item_chars = []
+        # Don't support nested item access with olf @ and & syntax.
+        # In RF 3.2 old syntax is to be deprecated and in RF 3.3 it
+        # will be reassigned to mean using variable in list/dict context.
+        if self._variable_chars[0] in '@&':
             raise StopIteration
+        self._state = self._waiting_item_state
