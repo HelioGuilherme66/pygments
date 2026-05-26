@@ -2,25 +2,25 @@
 '\n'          Punctuation
 
 'Documentation' Keyword.Namespace
-'    '        Punctuation
+'     '       Punctuation
 'Simple example demonstrating syntax highlighting.' Literal.String
 '\n'          Punctuation
 
-'Library'     Keyword.Namespace
-'          '  Punctuation
-'Process'     Name.Namespace
-'\n'          Punctuation
-
 'Test Setup'  Keyword.Namespace
-'       '     Punctuation
-'Keyword'     Name.Function.Magic
+'        '    Punctuation
+'Keyword'     Name.Function
 '    '        Punctuation
 'argument'    Literal.String
-'   '         Punctuation
+'    '        Punctuation
 'argument with ' Literal.String
 '${'          Punctuation
 'VARIABLE'    Name.Variable
 '}'           Punctuation
+'\n'          Punctuation
+
+'Library'     Keyword.Namespace
+'           ' Punctuation
+'Process'     Name.Namespace
 '\n'          Punctuation
 
 '\n'          Punctuation
@@ -31,14 +31,14 @@
 '${'          Punctuation
 'VARIABLE'    Name.Variable
 '}'           Punctuation
-'      '      Punctuation
+'       '     Punctuation
 'Variable value' Literal.String
 '\n'          Punctuation
 
 '@{'          Punctuation
 'LIST'        Name.Variable
 '}'           Punctuation
-'          '  Punctuation
+'           ' Punctuation
 'List'        Literal.String
 '    '        Punctuation
 'variable'    Literal.String
@@ -49,7 +49,7 @@
 '&{'          Punctuation
 'DICT'        Name.Variable
 '}'           Punctuation
-'          '  Punctuation
+'           ' Punctuation
 'Key1=Value1' Literal.String
 '    '        Punctuation
 'Key2=Value2' Literal.String
@@ -82,7 +82,7 @@
 'Teardown'    Keyword.Namespace
 ']'           Punctuation
 '    '        Punctuation
-'Cleanup System' Name.Function.Magic
+'Cleanup System' Name.Function
 '\n'          Punctuation
 
 '\n'          Punctuation
@@ -95,7 +95,7 @@
 'Template'    Keyword.Namespace
 ']'           Punctuation
 '    '        Punctuation
-'Keyword'     Name.Function.Magic
+'Keyword'     Name.Function
 '\n'          Punctuation
 
 '    '        Punctuation
@@ -196,7 +196,7 @@
 '['           Punctuation
 'Tags'        Keyword.Namespace
 ']'           Punctuation
-'  '          Punctuation
+'    '        Punctuation
 'whatever'    Literal.String
 '\n'          Punctuation
 
@@ -282,7 +282,7 @@
 '${'          Punctuation
 'arg2'        Name.Variable
 '}'           Punctuation
-'   '         Punctuation
+'    '        Punctuation
 '${'          Punctuation
 'arg3'        Name.Variable
 '}'           Punctuation
@@ -295,36 +295,36 @@
 '    '        Punctuation
 'IF'          Name.Function.Magic
 '    '        Punctuation
-'"'           Literal.String
+'"'           Name.Function
 '${'          Punctuation
 'arg1'        Name.Variable
 '}'           Punctuation
-'" == "'      Literal.String
+'" == "'      Name.Function
 '${'          Punctuation
 'arg2'        Name.Variable
 '}'           Punctuation
-'"'           Literal.String
+'"'           Name.Function
 '\n'          Punctuation
 
 '        '    Punctuation
 'Log'         Name.Function
-'     '       Punctuation
+'    '        Punctuation
 'Equal Arguments' Literal.String
 '\n'          Punctuation
 
 '    '        Punctuation
 'ELSE IF'     Name.Function.Magic
 '    '        Punctuation
-'"'           Literal.String
+'"'           Name.Function
 '${'          Punctuation
 'arg1'        Name.Variable
 '}'           Punctuation
-'" == "argument1"' Literal.String
+'" == "argument1"' Name.Function
 '\n'          Punctuation
 
 '        '    Punctuation
 'Log'         Name.Function
-'     '       Punctuation
+'    '        Punctuation
 'arg1 is equal to argument1' Literal.String
 '\n'          Punctuation
 
@@ -341,7 +341,18 @@
 '    '        Punctuation
 'IN RANGE'    Name.Function.Magic
 '    '        Punctuation
-'3'           Literal.String
+'4'           Literal.String
+'\n'          Punctuation
+
+'            ' Punctuation
+'IF'          Name.Function.Magic
+'    '        Punctuation
+'${'          Punctuation
+'idx'         Name.Variable
+'}'           Punctuation
+' == 3'       Name.Function
+'    '        Punctuation
+'BREAK'       Name.Function.Magic
 '\n'          Punctuation
 
 '            ' Punctuation
@@ -390,14 +401,60 @@
 '\n'          Punctuation
 
 '    '        Punctuation
-'Log'         Name.Function
+'Run Keywords' Name.Function
+'    '        Punctuation
+'Log'         Literal.String
 '    '        Punctuation
 'Done'        Literal.String
+'\n'          Punctuation
+
+'    '        Punctuation
+'...'         Punctuation
+'    '        Punctuation
+'AND'         Name.Function.Magic
+'    '        Punctuation
+'No Operation' Literal.String
 '\n'          Punctuation
 
 '\n'          Punctuation
 
 'Cleanup System' Generic.Subheading
+'\n'          Punctuation
+
+'    '        Punctuation
+'TRY'         Name.Function.Magic
+'\n'          Punctuation
+
+'        '    Punctuation
+'Log'         Name.Function
+'    '        Punctuation
+'%{'          Punctuation
+'HOME'        Name.Variable
+'}'           Punctuation
+'\n'          Punctuation
+
+'    '        Punctuation
+'EXCEPT'      Name.Function.Magic
+'\n'          Punctuation
+
+'        '    Punctuation
+'Log To Console' Name.Function
+'    '        Punctuation
+'\\%{HOME} does not exist' Literal.String
+'\n'          Punctuation
+
+'    '        Punctuation
+'ELSE'        Name.Function.Magic
+'\n'          Punctuation
+
+'        '    Punctuation
+'Log To Console' Name.Function
+'    '        Punctuation
+'\\%{HOME} exists' Literal.String
+'\n'          Punctuation
+
+'    '        Punctuation
+'END'         Name.Function.Magic
 '\n'          Punctuation
 
 '    '        Punctuation
